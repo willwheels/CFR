@@ -1,0 +1,20 @@
+- title: 2009 is a problem
+  description: >
+    The 2009 files continue to display weird results
+  issue:
+    - title: Investigate issue
+      body: Not sure about path
+      assignees: [willwheels]
+      labels: [long-term]
+
+
+- title: Redo network
+  description: >
+    Recreate network with tidygraph; do all data steps in initial dataframe
+  issue:
+    - title: Remove igraph steps
+      body: nuke igraph
+    - title: Move data steps
+      body: Move all weight and size calculations to data frame creation
+    - title: Visualizations
+      body: recreate network visualizations
