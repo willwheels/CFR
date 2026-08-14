@@ -6,7 +6,7 @@ source("bottom up functions with map.R")
 
 years <- as.character(seq(1997, 2019))
 
-output_dir <- file.path(".", "data", "processed_xml_bottom_up")
+output_dir <- here::here("data", "processed_xml_bottom_up")
 
 if (!dir.exists(output_dir)){
   dir.create(output_dir, recursive = TRUE)
@@ -19,7 +19,7 @@ read_and_process_one_year <- function(year){
   # Start the clock!
   ptm <- proc.time()
   
-  infile_path <- file.path(".", "data", "read_xml_from_web", year)
+  infile_path <- file.path("data", "read_xml_from_web", year)
   
   files <- list.files(infile_path, full.names = TRUE)
   
@@ -48,27 +48,6 @@ plan(multiprocess)
 ptm <- proc.time()
 
 walk(years, read_and_process_one_year)
-
-# Stop the clock
-proc.time() - ptm
-
-## 1997 took 2.3 hours before trying parallel
-## 1997 in parallel, 25 minutes before error in bind_rows
-
-## a little over two hours each, a good 35 hours total
-
-## 12.6 hours, 4x large (also saving w/ compressed = TRUE)
-## 5/29-5/30 finished 1997-2018 in approx 10.5 hours hung for 2019
-
-
-# 2561 sec for 1997, plan multiprocess 6/27/2020
-# EDAP 4x took 912 for 1997 6/28/20; 1997-2018 36183.00 = just over ten hours
-# 2127 for 2019 (omitted from code)
-
-# Start the clock!
-ptm <- proc.time()
-
-read_and_process_one_year("2019")
 
 # Stop the clock
 proc.time() - ptm
