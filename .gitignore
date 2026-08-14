@@ -6,3 +6,5 @@ data/
 deprecated/
 graphs/
 *.Rda
+*_cache/
+*_files/

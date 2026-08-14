@@ -1,0 +1,32 @@
+---
+title: "File Descriptions"
+output: html_document
+---
+
+## Files and what they do
+
+Files should be run in order. 
+
+__10 read and download all CFR files.R__
+
+Scrapes the GPO website for all volumes of Title 40 of the CFR and downloads them.
+
+This takes slightly over two hours on my laptop and is a little bit faster on EDAP. I had repeated issues with 2019 on my laptop, sometimes this was explicitly a timeout.
+
+__20 read all files bottom up with map.R__
+
+Reads all the files and processes the xml into a dataframe.
+
+Takes over 10 hours on EDAP (4x large). I zip and download back to my laptop for further work.
+
+There are still issues with this file (see Github). Specifically, it is assigning incorrect titles to chapters--possibly because it is grabbing CHAPTER nodes from TOCs, EXPLA, or elsewhere.
+
+"bottom up" refers to the approach: the program grabs all paragraphs and works up the xml ancestors. Previous code went the other direction but, as written, was much slower.
+
+__bottom up functions with map.R__
+
+Function source for previous file.
+
+
+
+

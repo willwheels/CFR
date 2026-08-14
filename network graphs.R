@@ -1,9 +1,13 @@
 library(tidyverse)
-library(igraph)
+#library(igraph)
 library(tidygraph)
 library(ggraph)
 library(here)
 
+
+# function to create dataframe with node (to and from) names and counts of 
+# the number of such connections
+# also flags the year of the CFR
 
 create_graph_df_from_year <- function(year) {
   
@@ -34,6 +38,8 @@ create_graph_df_from_year <- function(year) {
   
 }
 
+
+# function to create a data frame of nodes, with a count of the number of words
 create_node_df_from_year <- function(year) {
   
   filename <- paste0("./data/processed_xml_bottom_up/processed_xml_", year, ".Rda")
@@ -63,6 +69,8 @@ node_df_all <- map_dfr(as.character(seq(2003, 2018)), create_node_df_from_year)
 
 max_words <- max(node_df_all$num_words)
 
+# graphs the giant subcomponent of one year of the CFR
+# weights and alpha are scaled to the maximum words or number of interpart citations, respectively
 
 graph_one_year <- function(year) {
   
@@ -76,7 +84,7 @@ graph_one_year <- function(year) {
     mutate(num_words = if_else(is.na(num_words), as.integer(1), num_words))
   
   
-  dg_this_year <- decompose.graph(graph_this_year, max.comps = 4)
+  dg_this_year <- igraph::decompose.graph(graph_this_year, max.comps = 4)
   
   
   ggraph(dg_this_year[[1]], layout = "kk") +
@@ -99,17 +107,13 @@ graph_one_year <- function(year) {
 graph_one_year("2003")
 
 walk(as.character(seq(2003, 2018)), graph_one_year)
-#  
-# check_nodes <- node_df_all %>%
-#   select(from, CFR_year) %>%
-#   mutate(present = 1) %>%
-#   pivot_wider(values_from = present, names_from = CFR_year)
-# 
-# count_nodes <- check_nodes %>%
-#   select(-from) %>%
-#   colSums(., na.rm = TRUE)
 
-## dealing w/ "mega" graph--that is, all nodes and links ever
+
+
+## this stuff down here is used to create a giant graph of the entire CFR
+## why you ask? because I was quite masochistically insistent on animating
+## the goddamn thing, so I put all of the nodes in one "mega" graph to fix
+## their position
 
 mega_graph_df <- graph_df_all %>%
   group_by(from, to) %>%
@@ -134,6 +138,9 @@ ggraph(dg_mega[[1]]) +
   geom_edge_link() +
   geom_node_point()
   
+
+
+## I'll be honest, I don't remember wtf I was doing here
 
 
 graph_df_all <- map_dfr(as.character(seq(2003, 2018)), create_graph_df_from_year)

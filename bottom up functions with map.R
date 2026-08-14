@@ -79,18 +79,4 @@ process_file <- function(filename) {
 
 
 
-# Start the clock!
-ptm <- proc.time()
 
-url <- "https://www.govinfo.gov/bulkdata/CFR/2018/title-40/CFR-2018-title40-vol34.xml"
-
-
-
-test <- process_file(url)
-
-# Stop the clock
-proc.time() - ptm
-
-
-
-test2 <- process_file(url)

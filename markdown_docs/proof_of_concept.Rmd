@@ -13,6 +13,13 @@ output: distill::distill_article
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+#library(rlang)
+
+theme_set(theme_minimal() + 
+            theme(plot.title.position = "plot", plot.caption.position = "plot"))
+
 ```
 Computers make reading things better. This could help us better understand EPA's bit of the Code of Federal Regulations, something we want to know more about. 
 
@@ -21,6 +28,91 @@ Existing studies of the CFR have helped a lot, but we think we can do better. Ex
 We retrieved the CFR from 1997-2018 from the Government Printing Office website. The data was in eXtensible Market Language (XML), which is useful because it's in a simplified format derived from and similar to the markup language used to produce the printed version of the CFR.
 
 Initially we study only citations from one part of Title 40 to another, specifically those which are of the form "'any number' CFR Part 'any number'" which is the simplest citation format in the CFR. This likely oversimplifies the resulting network but is also simple enough to demonstrate our approach.
+
+
+
+```{r, read_data, cache=TRUE, cache.lazy = FALSE}
+
+years <- as.character(seq(1997, 2019))
+
+read_one_year_processed_xml <- function(year) {
+  
+  filename <- here::here("data", "processed_xml_bottom_up", paste0("processed_xml_", year, ".Rda"))
+  
+  # I have a note to rename the files as RDs so I can import them in w/ diff. names
+  # all xml files should load as a df named year_xml
+  load(filename) 
+  
+  return(year_xml)
+  
+}
+
+
+
+all_sections_processed <- map_dfr(years, read_one_year_processed_xml)
+
+
+```
+
+```{r, create_dataframes, cache=TRUE}
+
+all_sections_incorporation <- all_sections_processed %>%
+  mutate(incorporation = str_detect(section_subject, "Incorporation")*1,
+         CFR_cite = str_count(paragraph_text, "CFR")*1,
+         num_words = str_count(paragraph_text, boundary(type = "word"))) %>%
+  group_by(CFR_year) %>%
+  summarize(all_rows = n()/100 , 
+            all_incorporations = sum(incorporation, na.rm = TRUE),
+            all_CFRs = sum(CFR_cite, na.rm = TRUE),
+            all_words_millions = sum(num_words, na.rm = TRUE)/1000000) %>%
+  ungroup() 
+
+
+all_sections_graph <- 
+  reshape2::melt(all_sections_incorporation, id.vars = "CFR_year") %>%
+  mutate(CFR_year = as.integer(CFR_year)) %>%
+  filter(CFR_year > 2001) %>%
+  identity()
+```
+
+The following graphs show fairly substantial increases in the use of Incorporations by Reference, uses of the "CFR" (which we assume to mean a reference to another Part of the CFR), and the sheer number of words in Title 40.
+
+(Please note that the 2009 data seems to be somewhat amiss.)
+
+
+```{r, graph_one, layout="l-screen-inset"}
+ggplot(data = subset(all_sections_graph, variable == "all_incorporations"),
+                     aes(x = CFR_year, y = value)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(2001, 2019, by =2)) +
+  labs( y = "Count", x = "CFR year", title = "Growth in Incorporations by Reference, EPA CFR") 
+```
+
+
+```{r, graph_two, layout="l-screen-inset"}
+
+ggplot(data = subset(all_sections_graph, 
+                     variable == "all_CFRs"),
+       aes(x = CFR_year, y = value)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(1997, 2019, by =2)) +
+  scale_y_continuous(breaks = seq(4000, 19000, by = 3000)) +
+  labs( y = "Count", x = "CFR year", title = "Occurrences of 'CFR', EPA CFR")
+
+```
+
+```{r, graph_three, layout="l-screen-inset"}
+
+
+ggplot(data = subset(all_sections_graph, 
+                     variable == "all_words_millions" & CFR_year > 2001),
+       aes(x = CFR_year, y = value)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(2002, 2018, by =2)) +
+  labs( y = "Count", x = "CFR year", title = "Number of Words (in Millions), EPA CFR") 
+
+```
+
 
 
 
